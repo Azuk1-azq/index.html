@@ -685,6 +685,8 @@ function startLoading() {
       speedEl.textContent = '0.00 MB/s';
       etaEl.textContent = '00:00';
       transferredEl.textContent = TOTAL_MB.toFixed(2) + ' / ' + TOTAL_MB.toFixed(2) + ' MB';
+      pct.textContent = '100%';
+      fill.style.width = '100%';
     }
   }
 
@@ -707,7 +709,7 @@ function startLoading() {
   setTimeout(() => {
     document.getElementById('loader').classList.remove('active');
     document.getElementById('complete-btn').classList.add('show');
-  }, DURATION + 300);
+  }, DURATION + 2300);
 }
 </script>
 </body>
