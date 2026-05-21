@@ -540,7 +540,6 @@
         <span class="stat-value" id="eta">--:--</span>
       </div>
     </div>
-    <div class="loader-log" id="log"></div>
     <div class="waveform" id="waveform"></div>
   </div>
 
@@ -558,22 +557,6 @@
 </div>
 
 <script>
-const LOGS = [
-  { text: '> 接続を確立しています...', cls: '' },
-  { text: '> サーバーに認証中...', cls: '' },
-  { text: '> ファイルを検索中: Grace_OST.mp3', cls: '' },
-  { text: '> [OK] ファイルが見つかりました (320kbps / 5.74 MB)', cls: 'ok' },
-  { text: '> [OK] チェックサムを検証しました', cls: 'ok' },
-  { text: '> データストリームを開始しています...', cls: 'warn' },
-  { text: '> パケット受信中... ブロック 001/064', cls: '' },
-  { text: '> パケット受信中... ブロック 016/064', cls: '' },
-  { text: '> パケット受信中... ブロック 032/064', cls: '' },
-  { text: '> パケット受信中... ブロック 048/064', cls: '' },
-  { text: '> パケット受信中... ブロック 064/064', cls: '' },
-  { text: '> [OK] 整合性チェック完了', cls: 'ok' },
-  { text: '> 転送完了 — 準備できました', cls: 'ok' },
-];
-
 const TOTAL_MB = 5.74;
 const DURATION = 20000;
 
@@ -610,7 +593,6 @@ function startLoading() {
 
   const fill = document.getElementById('fill');
   const pct  = document.getElementById('pct');
-  const log  = document.getElementById('log');
   const speedEl       = document.getElementById('speed');
   const transferredEl = document.getElementById('transferred');
   const etaEl         = document.getElementById('eta');
@@ -691,19 +673,6 @@ function startLoading() {
   }
 
   requestAnimationFrame(animateProgress);
-
-  // Log messages
-  const totalLogs = LOGS.length;
-  LOGS.forEach((entry, i) => {
-    const t = (i / (totalLogs - 1)) * (DURATION - 500) + 200;
-    setTimeout(() => {
-      const line = document.createElement('div');
-      line.className = 'log-line' + (entry.cls ? ' ' + entry.cls : '');
-      line.textContent = entry.text;
-      log.appendChild(line);
-      while (log.children.length > 3) log.removeChild(log.firstChild);
-    }, t);
-  });
 
   // Complete
   setTimeout(() => {
