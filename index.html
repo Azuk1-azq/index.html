@@ -656,7 +656,7 @@
 
 <script>
 const TOTAL_MB = 5.74;
-const DURATION = 20000;
+const DURATION = 5000; // 完了までの時間を20秒から5秒に短縮
 
 function buildWaveform() {
   const wf = document.getElementById('waveform');
@@ -695,15 +695,12 @@ function startLoading() {
   const transferredEl = document.getElementById('transferred');
   const etaEl         = document.getElementById('eta');
 
-  // Base speed curve: slow → fast → slow (MB/s over 0-1 progress)
-  // We simulate ~0.4 MB/s avg to cover 8.34 MB in 20s
   let startTime = null;
   let prevTimestamp = null;
   let downloadedMB = 0;
   let smoothSpeed = 0;
-  // noise state
-  let noiseTarget = 0.42;
-  let noiseCurrent = 0.10;
+  let noiseTarget = 2.0;
+  let noiseCurrent = 0.5;
   let noiseTimer = 0;
 
   function easeInOutSine(t) {
@@ -714,19 +711,15 @@ function startLoading() {
     if (!startTime) { startTime = timestamp; prevTimestamp = timestamp; }
     const elapsed = timestamp - startTime;
     const raw = Math.min(elapsed / DURATION, 1);
-
-    // dt in seconds
     const dt = (timestamp - prevTimestamp) / 1000;
     prevTimestamp = timestamp;
 
-    // Speed varies realistically: ramp up early, plateau, slight slow at end
-    // Base speed profile shaped by curve
+    // 高速化のための係数調整
     const speedCurve =
-      raw < 0.1 ? raw / 0.1 * 0.6 :          // ramp up 0→0.6 MB/s
-      raw < 0.7 ? 0.6 - (raw - 0.1) * 0.15 : // slight drift
-      0.6 - (raw - 0.7) * 1.5;                // slow finish
+      raw < 0.1 ? raw / 0.1 * 2.5 :
+      raw < 0.7 ? 2.5 - (raw - 0.1) * 0.5 :
+      2.5 - (raw - 0.7) * 5.0;
 
-    // Noise: random fluctuation every ~1.5s
     noiseTimer -= dt;
     if (noiseTimer <= 0) {
       noiseTarget = speedCurve * (0.75 + Math.random() * 0.5);
@@ -734,7 +727,6 @@ function startLoading() {
     }
     noiseCurrent += (noiseTarget - noiseCurrent) * Math.min(dt * 3, 1);
 
-    // Occasionally spike or dip
     const spikeFactor = Math.random() < 0.02 ? (Math.random() < 0.5 ? 1.8 : 0.3) : 1;
     const currentSpeed = Math.max(0.01, noiseCurrent * spikeFactor);
     smoothSpeed += (currentSpeed - smoothSpeed) * 0.3;
@@ -745,18 +737,15 @@ function startLoading() {
     fill.style.width = percent + '%';
     pct.textContent  = percent + '%';
 
-    // Speed display with occasional micro-jitter
     const displaySpeed = smoothSpeed + (Math.random() - 0.5) * 0.04;
     speedEl.textContent = displaySpeed.toFixed(2) + ' MB/s';
     flash(speedEl);
 
-    // Transferred
     transferredEl.textContent =
       downloadedMB.toFixed(2) + ' / ' + TOTAL_MB.toFixed(2) + ' MB';
 
-    // ETA
     const remaining = TOTAL_MB - downloadedMB;
-    const etaSec = smoothSpeed > 0 ? remaining / smoothSpeed : 99;
+    const etaSec = smoothSpeed > 0 ? remaining / smoothSpeed : 0;
     etaEl.textContent = formatEta(etaSec);
 
     if (raw < 1) {
@@ -772,18 +761,15 @@ function startLoading() {
 
   requestAnimationFrame(animateProgress);
 
-  // Complete
   setTimeout(() => {
     document.getElementById('loader').classList.remove('active');
     document.getElementById('complete-btn').classList.add('show');
-
-    // Thank you — staggered char animation
     const ty = document.getElementById('thankyou');
     ty.classList.add('show');
     ty.querySelectorAll('.ty-char').forEach((el, i) => {
       el.style.animationDelay = (0.4 + i * 0.07) + 's';
     });
-  }, DURATION + 2300);
+  }, DURATION + 300); // 完了までの待機時間を短縮
 }
 </script>
 </body>
